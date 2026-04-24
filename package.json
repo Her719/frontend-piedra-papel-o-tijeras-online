@@ -1,0 +1,24 @@
+{
+  "name": "2-ppt-online-front",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "parcel serve ./src/index.html",
+    "build": "parcel build ./src/index.html",
+    "start": "node ./dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@vaadin/router": "^2.0.1",
+    "firebase": "^12.9.0",
+    "lodash": "^4.17.23",
+    "nanoid": "^5.1.7",
+    "parcel": "^2.16.4"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.23",
+    "process": "^0.11.10"
+  }
+}
