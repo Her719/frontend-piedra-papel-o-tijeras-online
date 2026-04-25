@@ -1,126 +1,65 @@
-// import { getRoomScore, listenToRoom, playMove } from "../../state";
-// const LS_KEY = "userId";
+import { listenToRoom, markOnline, getRoomScore } from "../../state";
+import { getHashParams } from "../../router";
+type PageParams = {
+  goTo: (path: string) => void;
+};
 
-// function roomIdFromHash() {
-//   const qs = location.hash.split("?")[1] || "";
-//   return new URLSearchParams(qs).get("roomId");
-// }
+export function initJuego(params: PageParams) {
+  const div = document.createElement("div");
+  const searchParams = getHashParams();
+  const roomId = searchParams.get("roomId");
+  const rtdbRoomId = searchParams.get("rtdbRoomId");
+  const userId = localStorage.getItem("userId");
+  const userName = localStorage.getItem("userName") || userId;
+  div.style.flex = "1";
+  div.style.display = "flex";
+  let score = { player1: 0, player2: 0, empates: 0 };
 
-// export function initJuego({ goTo }: { goTo: (path: string) => void }) {
-//   const root = document.createElement("div");
-//   root.className = "page juego";
+  div.innerHTML = `
+    <style>
+      .conteiner {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-//   const roomId = roomIdFromHash();
-//   if (!roomId) {
-//     root.textContent = "roomId missing";
-//     return root;
-//   }
+    </style>
+    
+    <div class="conteiner">
+        <game-header
+        room-id="${roomId}"
+        player1-name="${userName}"
+        player1-score="0"
+        player2-name="Jugador 2"
+        player2-score="0"
+        empates="0"
+        ></game-header>
 
-//   const userId = localStorage.getItem(LS_KEY);
-//   if (!userId) {
-//     goTo("/sign-in");
-//     return root;
-//   }
+      <timer-game></timer-game>
+      <img-juego mode="interactive"></img-juego>
+    </div>
+  `;
 
-//   const header = document.createElement("div");
-//   header.className = "game-header";
-//   header.textContent = `Sala: ${roomId}`;
+  const timer = div.querySelector("timer-game");
+  const imgJuego = div.querySelector("img-juego");
 
-//   const scoreCmp = document.createElement("game-score");
-//   scoreCmp.className = "game-score";
+  timer?.addEventListener("timeout", () => {
+    const lastRound = 0;
+    if (!lastRound) return;
 
-//   const imgJuego = document.createElement("img-juego");
-//   imgJuego.className = "img-juego";
+    // mostrar jugadas finales
+    // imgJuego?.setAttribute("mode", "static");
+    // imgJuego?.setAttribute("player", lastRound.playerMove);
+    // imgJuego?.setAttribute("cpu", lastRound.cpuMove);
 
-//   const timer = document.createElement("timer-game");
-//   timer.className = "timer-game";
+    // pequeño delay para que se vea la jugada de la cpu y jugador
+    setTimeout(() => {
+      params.goTo("/resultado");
+    }, 1500);
+  });
 
-//   const err = document.createElement("div");
-//   err.className = "error";
-//   err.style.color = "crimson";
-
-//   root.append(header, scoreCmp, imgJuego, timer, err);
-
-//   let rtdbRoomId: string | null = null;
-//   let hasPlayed = false;
-
-//   async function init() {
-//     try {
-//       // get rtdbRoomId via GET /rooms/:roomId
-//       const roomDoc = await fetch(`/rooms/${roomId}`).then((r) => r.json());
-//       rtdbRoomId = roomDoc?.rtdbRoomId || null;
-
-//       // load persistent score
-//       try {
-//         const score = await getRoomScore(roomId);
-//         scoreCmp.setAttribute("player1", score?.rounds?.[0]?.player1Id || "P1");
-//         scoreCmp.setAttribute("player2", score?.rounds?.[0]?.player2Id || "P2");
-//         (scoreCmp as any).scoreData = score;
-//       } catch {
-//         // ignore
-//       }
-
-//       if (!rtdbRoomId) {
-//         err.textContent = "RTDB room id no disponible.";
-//         return;
-//       }
-
-//       listenToRoom(rtdbRoomId, (data) => {
-//         // update UI flags
-//         const p1Move = data?.moves?.player1;
-//         const p2Move = data?.moves?.player2;
-//         const meSlot =
-//           data?.players?.player1?.id === userId ? "player1" : "player2";
-//         if (
-//           (meSlot === "player1" && p1Move) ||
-//           (meSlot === "player2" && p2Move)
-//         ) {
-//           hasPlayed = true;
-//           imgJuego.setAttribute("disabled", "true");
-//         } else {
-//           hasPlayed = false;
-//           imgJuego.removeAttribute("disabled");
-//         }
-//       });
-//     } catch (e: any) {
-//       err.textContent = e?.message || "Error inicializando juego.";
-//     }
-//   }
-
-//   imgJuego.addEventListener("choice", async (ev: Event) => {
-//     err.textContent = "";
-//     const move = (ev as CustomEvent).detail?.move;
-//     if (!move) return;
-//     if (!rtdbRoomId) {
-//       err.textContent = "No disponible la sala en tiempo real.";
-//       return;
-//     }
-//     if (hasPlayed) {
-//       err.textContent = "Ya jugaste esta ronda.";
-//       return;
-//     }
-//     try {
-//       imgJuego.setAttribute("disabled", "true");
-//       await playMove(rtdbRoomId, userId!, move);
-//       hasPlayed = true;
-//     } catch (e: any) {
-//       err.textContent = e?.message || "Error enviando jugada.";
-//       imgJuego.removeAttribute("disabled");
-//     }
-//   });
-
-//   timer.addEventListener("timeout", async (ev: Event) => {
-//     if (!rtdbRoomId) return;
-//     if (hasPlayed) return;
-//     const autoMove = (ev as CustomEvent).detail?.move || "none";
-//     try {
-//       await playMove(rtdbRoomId, userId!, autoMove);
-//       hasPlayed = true;
-//     } catch (e: any) {
-//       err.textContent = e?.message || "Error al enviar jugada por timeout.";
-//     }
-//   });
-
-//   init();
-//   return root;
-// }
+  return div;
+}

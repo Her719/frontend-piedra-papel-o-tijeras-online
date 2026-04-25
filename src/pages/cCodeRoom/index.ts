@@ -100,7 +100,7 @@ export function initCodeRoom(params: PageParams) {
       listenToRoomChanges(rtdbRoomId, code, userId);
 
       //Navegar a waiting
-      params.goTo(`/waiting?roomId=${code}&rtdbRoomId=${rtdbRoomId}`);
+      params.goTo(`/to-room?roomId=${code}&rtdbRoomId=${rtdbRoomId}`);
     } catch (error) {
       console.error("Error al unirse a sala:", error);
       alert("No se pudo unir a la sala. Verificá el código.");
