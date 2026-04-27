@@ -2,7 +2,7 @@ import { nanoid as nanoidShort } from "nanoid";
 import { ref, onValue, set } from "firebase/database";
 import { rtdb } from "./rtdb";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 
 export type Move = "piedra" | "papel" | "tijera";
 export type GameStatus = "waiting" | "playing" | "finished";
