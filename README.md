@@ -1,1 +1,1 @@
-https://her719.github.io/piedra-papel-o-tijeras-vs-CPU/
+https://frontend-piedra-papel-o-tijeras-online-c7117s3s0.vercel.app/
