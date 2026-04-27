@@ -1,7 +1,14 @@
-import { createRoom, markOnline, listenToRoomChanges } from "../../state";
+import {
+  createRoom,
+  markOnline,
+  listenToRoomChanges,
+  authOrSignUp,
+} from "../../state";
+
 type PageParams = {
   goTo: (path: string) => void;
 };
+
 export function initSignIn(params: PageParams) {
   const div = document.createElement("div");
   div.className = "page sign-in";
@@ -56,48 +63,41 @@ export function initSignIn(params: PageParams) {
       <img-juego mode="static"></img-juego>
     </div>
   `;
-  const nameForm = div.querySelector<HTMLElement>("#user-form");
+
   const continueBtn = div.querySelector<HTMLButtonElement>("#continue-btn");
+
   continueBtn?.addEventListener("click", async () => {
     const name = localStorage.getItem("userName");
+
     if (!name) {
       alert("Ingresá tu nombre");
       return;
     }
+
     try {
-      // auth
-      let res = await fetch("http://localhost:3000/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      let data = await res.json();
-      // signup si no existe
-      if (!data.exists) {
-        res = await fetch("http://localhost:3000/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-        data = await res.json();
-      }
-      const userId = data.id;
-      //persistencia correcta
+      // Autenticación unificada (auth + signup si es necesario)
+      const userId = await authOrSignUp(name);
+
+      // Persistencia
       localStorage.setItem("userId", userId);
       localStorage.setItem("userName", name);
-      //crear room
-      const roomResp = await createRoom(userId);
-      const { roomId, rtdbRoomId } = roomResp;
-      //online
+
+      // Crear room
+      const { roomId, rtdbRoomId } = await createRoom(userId);
+
+      // Marcar online
       await markOnline(rtdbRoomId, userId);
-      //listener
+
+      // Escuchar cambios
       listenToRoomChanges(rtdbRoomId, roomId, userId);
-      //navegar con params correctos
+
+      // Navegar
       params.goTo(`/to-room?roomId=${roomId}&rtdbRoomId=${rtdbRoomId}`);
     } catch (err) {
       console.error(err);
-      alert("Error al autenticar");
+      alert(err instanceof Error ? err.message : "Error al autenticar");
     }
   });
+
   return div;
 }

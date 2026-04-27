@@ -3,7 +3,7 @@ import { initSignIn } from "../src/pages/bSignIn";
 import { initCodeRoom } from "../src/pages/cCodeRoom";
 import { initToRoom } from "../src/pages/dToRoom";
 import { initJuego } from "./pages/eJuego";
-// import { initResultado } from "./pages/fResultado";
+import { initResultado } from "./pages/fResultado";
 
 const routes = [
   {
@@ -31,11 +31,11 @@ const routes = [
     component: initJuego,
     background: true,
   },
-  // {
-  //   path: /^\/resultado$/,
-  //   component: initResultado,
-  //   background: false,
-  // },
+  {
+    path: /^\/resultado$/,
+    component: initResultado,
+    background: false,
+  },
 ];
 
 // Helper para extraer parámetros del hash

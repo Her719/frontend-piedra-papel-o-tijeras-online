@@ -32,6 +32,9 @@ export function image() {
       if (move === "papel") return this.papelUrl;
       return this.tijeraUrl;
     }
+    public getImageUrl(move: Move): string {
+      return this.getImgByMove(move);
+    }
 
     private render() {
       const mode = this.getAttribute("mode") ?? "static";

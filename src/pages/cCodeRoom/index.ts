@@ -1,4 +1,9 @@
-import { joinRoom, markOnline, listenToRoomChanges } from "../../state";
+import {
+  joinRoom,
+  markOnline,
+  listenToRoomChanges,
+  authOrSignUp,
+} from "../../state";
 
 type PageParams = {
   goTo: (path: string) => void;
@@ -43,67 +48,52 @@ export function initCodeRoom(params: PageParams) {
       </text-game>
 
       <div class="form-section">
-        <!-- Nombre (auto guardado) -->
         <name-form></name-form>
-
-        <!-- Código de sala -->
         <room-code-form id="code-form"></room-code-form>
       </div>
 
       <img-juego mode="static"></img-juego>
     </div>
   `;
+
   const codeForm = div.querySelector("#code-form");
+
   codeForm?.addEventListener("submit-code", async (e: Event) => {
     const { code } = (e as CustomEvent).detail;
-
-    //OBTENER NOMBRE
     const name = localStorage.getItem("userName");
+
     if (!name) {
       alert("Primero ingresá tu nombre");
       return;
     }
 
     try {
-      //AUTENTICACIÓN/SIGNUP (IGUAL QUE EN signIn.ts)
-      let res = await fetch("http://localhost:3000/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      let data = await res.json();
+      // Autenticación unificada (auth + signup)
+      const userId = await authOrSignUp(name);
 
-      // Si no existe, crear usuario
-      if (!data.exists) {
-        res = await fetch("http://localhost:3000/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-        data = await res.json();
-      }
-
-      const userId = data.id;
-
-      //GUARDAR EN LOCALSTORAGE
+      // Persistencia
       localStorage.setItem("userId", userId);
       localStorage.setItem("userName", name);
 
-      //AHORA SÍ UNIRSE A ROOM
+      // Unirse a la room
       const resp = await joinRoom(code, userId);
-      const rtdbRoomId = resp.rtdbRoomId;
+      const { rtdbRoomId } = resp;
 
-      //Marcar online
+      // Marcar online
       await markOnline(rtdbRoomId, userId);
 
-      //Listener realtime
+      // Escuchar cambios realtime
       listenToRoomChanges(rtdbRoomId, code, userId);
 
-      //Navegar a waiting
+      // Navegar
       params.goTo(`/to-room?roomId=${code}&rtdbRoomId=${rtdbRoomId}`);
     } catch (error) {
       console.error("Error al unirse a sala:", error);
-      alert("No se pudo unir a la sala. Verificá el código.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "No se pudo unir a la sala. Verificá el código.",
+      );
     }
   });
 
